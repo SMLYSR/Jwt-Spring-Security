@@ -1,6 +1,7 @@
 package com.joker.security_test.Config;
 
 import com.joker.security_test.Filter.JwtAuthenticationTokenFilter;
+import com.joker.security_test.Util.JwtIgnoreUrl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,10 +39,15 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
 
     private JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter;
 
+    private JwtIgnoreUrl jwtIgnoreUrl;
+
     @Autowired
-    public SecurityConfigurer(UserDetailsService userDetailsService, JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter){
+    public SecurityConfigurer(UserDetailsService userDetailsService,
+                              JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter,
+                              JwtIgnoreUrl jwtIgnoreUrl){
         this.userDetailsService = userDetailsService;
         this.jwtAuthenticationTokenFilter = jwtAuthenticationTokenFilter;
+        this.jwtIgnoreUrl = jwtIgnoreUrl;
     }
 
     /**
@@ -88,13 +94,19 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                 // 设置最多一个用户登录，如果第二个用户登陆则第一用户被踢出，并跳转到登陆页面
                 .maximumSessions(1).expiredUrl("/login.html");
 
+//        httpSecurity
+//                // 开始认证
+//                .authorizeRequests()
+//                // 对静态文件和登陆页面放行
+//                .antMatchers("/user/**","/a/chaeak").permitAll()
+//                .antMatchers("/login.html").permitAll()
+//                // 其他请求需要认证登陆
+//                .anyRequest().authenticated();
+        String[] ignoreUrls = jwtIgnoreUrl.getIgnoreUrl().split(",");
+
         httpSecurity
-                // 开始认证
                 .authorizeRequests()
-                // 对静态文件和登陆页面放行
-                .antMatchers("/user/**").permitAll()
-                .antMatchers("/login.html").permitAll()
-                // 其他请求需要认证登陆
+                .antMatchers(ignoreUrls).permitAll()
                 .anyRequest().authenticated();
 
 
